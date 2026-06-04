@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Question for You 💌</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #ffd1ff 100%);
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      color: #7a2048;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 6px rgba(255, 255, 255, 0.5);
+    }
+
+    .heart {
+      font-size: clamp(3rem, 12vw, 5rem);
+      margin-bottom: 16px;
+      animation: beat 1.2s ease-in-out infinite;
+    }
+
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .buttons {
+      margin-top: 40px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      font-weight: 600;
+      padding: 16px 40px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    #yes {
+      background: #ff4d6d;
+      color: white;
+    }
+
+    #yes:hover { transform: scale(1.08); }
+
+    #no {
+      background: #ffffff;
+      color: #7a2048;
+      /* When it needs to dodge, it becomes absolutely positioned via JS */
+    }
+
+    #no.dodging {
+      position: fixed;
+    }
+
+    .result {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .result h1 { color: #7a2048; }
+
+    .result .big-heart {
+      font-size: clamp(4rem, 18vw, 8rem);
+      animation: beat 0.8s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="ask">
+    <div class="heart">💖</div>
+    <h1>Would you like to go on a date with me?</h1>
+    <div class="buttons">
+      <button id="yes">Yes 😊</button>
+      <button id="no">No</button>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="big-heart">🥰</div>
+    <h1>Yay! You just made my day! 💕</h1>
+    <p style="color:#7a2048; font-size: clamp(1rem, 4vw, 1.3rem);">I can't wait. 💌</p>
+  </div>
+
+  <script>
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
+    const ask = document.getElementById('ask');
+    const result = document.getElementById('result');
+
+    function moveNoButton() {
+      // Make it free-floating the first time it dodges
+      if (!noBtn.classList.contains('dodging')) {
+        noBtn.classList.add('dodging');
+      }
+
+      const btnW = noBtn.offsetWidth;
+      const btnH = noBtn.offsetHeight;
+      const maxX = window.innerWidth - btnW - 16;
+      const maxY = window.innerHeight - btnH - 16;
+
+      const newX = Math.max(16, Math.floor(Math.random() * maxX));
+      const newY = Math.max(16, Math.floor(Math.random() * maxY));
+
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+    }
+
+    // Desktop: dodge on hover
+    noBtn.addEventListener('mouseover', moveNoButton);
+
+    // Mobile + fallback: dodge on any attempt to touch/tap/focus it
+    noBtn.addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      moveNoButton();
+    }, { passive: false });
+
+    noBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      moveNoButton();
+    });
+
+    // Yes: show the happy result
+    yesBtn.addEventListener('click', function () {
+      ask.style.display = 'none';
+      result.style.display = 'flex';
+    });
+  </script>
+</body>
+</html>
