@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Question for You 💌</title>
+  <title>A Question for Marylyne 💌</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -52,19 +52,19 @@
     }
 
     button {
-      font-size: clamp(1.1rem, 4vw, 1.5rem);
       font-weight: 600;
-      padding: 16px 40px;
       border: none;
       border-radius: 50px;
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, font-size 0.15s ease, padding 0.15s ease;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     }
 
     #yes {
       background: #ff4d6d;
       color: white;
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      padding: 16px 40px;
     }
 
     #yes:hover { transform: scale(1.08); }
@@ -72,7 +72,8 @@
     #no {
       background: #ffffff;
       color: #7a2048;
-      /* When it needs to dodge, it becomes absolutely positioned via JS */
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      padding: 16px 40px;
     }
 
     #no.dodging {
@@ -97,7 +98,8 @@
 <body>
   <div id="ask">
     <div class="heart">💖</div>
-    <h1>Would you like to go on a date with me?</h1>
+    <h1>Marylyne, would you go on a date with me?</h1>
+    <p style="color:#7a2048; margin-top:8px; font-size: clamp(1rem, 4vw, 1.3rem);">— David</p>
     <div class="buttons">
       <button id="yes">Yes 😊</button>
       <button id="no">No</button>
@@ -106,8 +108,8 @@
 
   <div class="result" id="result">
     <div class="big-heart">🥰</div>
-    <h1>Yay! You just made my day! 💕</h1>
-    <p style="color:#7a2048; font-size: clamp(1rem, 4vw, 1.3rem);">I can't wait. 💌</p>
+    <h1>Yay! You just made my day, Marylyne! 💕</h1>
+    <p style="color:#7a2048; font-size: clamp(1rem, 4vw, 1.3rem);">I can't wait. See you soon. 💌<br/>— David</p>
   </div>
 
   <script>
@@ -116,28 +118,56 @@
     const ask = document.getElementById('ask');
     const result = document.getElementById('result');
 
+    // Private push-notification topic (hard to guess).
+    const NTFY_TOPIC = 'marylyne-yes-k7m2p9qzx4';
+
+    // The No button gets funnier and more desperate each time it runs away.
+    const noTexts = [
+      'No',
+      'No?',
+      'Are you sure?',
+      'Really sure?',
+      'Think again! 🤔',
+      'Pleeease? 🥺',
+      'Don’t do this 😭',
+      'You can’t catch me 😜',
+      'Just say yes! 💘',
+      'I’ll cry 😢',
+      '💔'
+    ];
+    let dodgeCount = 0;
+
     function moveNoButton() {
-      // Make it free-floating the first time it dodges
       if (!noBtn.classList.contains('dodging')) {
         noBtn.classList.add('dodging');
       }
 
+      // Update the funny text.
+      dodgeCount++;
+      const idx = Math.min(dodgeCount, noTexts.length - 1);
+      noBtn.textContent = noTexts[idx];
+
+      // Shrink No, grow Yes (within limits) to tempt her.
+      const noScale = Math.max(0.55, 1 - dodgeCount * 0.06);
+      noBtn.style.transform = 'scale(' + noScale + ')';
+      const yesScale = Math.min(1.6, 1 + dodgeCount * 0.05);
+      yesBtn.style.transform = 'scale(' + yesScale + ')';
+
+      // Jump to a random spot on screen.
       const btnW = noBtn.offsetWidth;
       const btnH = noBtn.offsetHeight;
       const maxX = window.innerWidth - btnW - 16;
       const maxY = window.innerHeight - btnH - 16;
-
       const newX = Math.max(16, Math.floor(Math.random() * maxX));
       const newY = Math.max(16, Math.floor(Math.random() * maxY));
-
       noBtn.style.left = newX + 'px';
       noBtn.style.top = newY + 'px';
     }
 
-    // Desktop: dodge on hover
+    // Desktop: dodge on hover.
     noBtn.addEventListener('mouseover', moveNoButton);
 
-    // Mobile + fallback: dodge on any attempt to touch/tap/focus it
+    // Mobile + fallback: dodge on any tap attempt.
     noBtn.addEventListener('touchstart', function (e) {
       e.preventDefault();
       moveNoButton();
@@ -148,8 +178,21 @@
       moveNoButton();
     });
 
-    // Yes: show the happy result
+    // Yes: notify David, then show the happy result.
     yesBtn.addEventListener('click', function () {
+      // Fire-and-forget push notification (don't block the UI if it fails).
+      try {
+        fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+          method: 'POST',
+          body: 'Marylyne said YES! 💕',
+          headers: {
+            'Title': 'She said YES! 🎉',
+            'Tags': 'tada,heart',
+            'Priority': 'high'
+          }
+        }).catch(function () {});
+      } catch (e) {}
+
       ask.style.display = 'none';
       result.style.display = 'flex';
     });
