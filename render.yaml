@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: willyou
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DAVID_CODE
+        sync: false

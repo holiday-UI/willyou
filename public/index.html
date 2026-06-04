@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Question for Marylyne 💌</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #ffd1ff 100%);
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .screen { display: none; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+
+    h1 {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      color: #7a2048;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 6px rgba(255, 255, 255, 0.5);
+    }
+
+    .heart {
+      font-size: clamp(3rem, 12vw, 5rem);
+      margin-bottom: 16px;
+      animation: beat 1.2s ease-in-out infinite;
+    }
+
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .subtitle { color: #7a2048; margin-top: 8px; font-size: clamp(1rem, 4vw, 1.3rem); }
+
+    .buttons {
+      margin-top: 40px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      padding: 16px 40px;
+    }
+
+    #enter, #yes { background: #ff4d6d; color: white; }
+    #enter:hover, #yes:hover { transform: scale(1.08); }
+
+    #no { background: #ffffff; color: #7a2048; }
+    #no.dodging { position: fixed; }
+
+    .big-heart {
+      font-size: clamp(4rem, 18vw, 8rem);
+      animation: beat 0.8s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- Screen 1: login greeting -->
+  <div class="screen active" id="login">
+    <div class="heart">💕</div>
+    <h1>Hi Marylyne</h1>
+    <p class="subtitle">Someone has a little question for you...</p>
+    <div class="buttons">
+      <button id="enter">Enter 💌</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: the question -->
+  <div class="screen" id="ask">
+    <div class="heart">💖</div>
+    <h1>Marylyne, would you go on a date with me?</h1>
+    <p class="subtitle">— David</p>
+    <div class="buttons">
+      <button id="yes">Yes 😊</button>
+      <button id="no">No</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: she said yes -->
+  <div class="screen" id="result">
+    <div class="big-heart">🥰</div>
+    <h1>Yay! You just made my day, Marylyne! 💕</h1>
+    <p class="subtitle">I can't wait. See you soon. 💌<br/>— David</p>
+  </div>
+
+  <script>
+    // ---- Real-time link to the server ----
+    let ws = null;
+    function connect() {
+      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      ws = new WebSocket(proto + location.host);
+      ws.addEventListener('open', function () {
+        ws.send(JSON.stringify({ type: 'hello', role: 'marylyne' }));
+      });
+      // Reconnect if the link drops.
+      ws.addEventListener('close', function () { setTimeout(connect, 2000); });
+    }
+    function send(obj) {
+      try { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj)); } catch (e) {}
+    }
+    connect();
+
+    // ---- Screen switching ----
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+    }
+
+    const enterBtn = document.getElementById('enter');
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
+
+    enterBtn.addEventListener('click', function () {
+      send({ type: 'entered' });
+      show('ask');
+      send({ type: 'viewing' });
+    });
+
+    // ---- The unclickable "No" button ----
+    const noTexts = [
+      'No', 'No?', 'Are you sure?', 'Really sure?', 'Think again! 🤔',
+      'Pleeease? 🥺', 'Don’t do this 😭', 'You can’t catch me 😜',
+      'Just say yes! 💘', 'I’ll cry 😢', '💔'
+    ];
+    let dodgeCount = 0;
+
+    function moveNoButton() {
+      if (!noBtn.classList.contains('dodging')) noBtn.classList.add('dodging');
+
+      dodgeCount++;
+      noBtn.textContent = noTexts[Math.min(dodgeCount, noTexts.length - 1)];
+
+      const noScale = Math.max(0.55, 1 - dodgeCount * 0.06);
+      noBtn.style.transform = 'scale(' + noScale + ')';
+      const yesScale = Math.min(1.6, 1 + dodgeCount * 0.05);
+      yesBtn.style.transform = 'scale(' + yesScale + ')';
+
+      const maxX = window.innerWidth - noBtn.offsetWidth - 16;
+      const maxY = window.innerHeight - noBtn.offsetHeight - 16;
+      noBtn.style.left = Math.max(16, Math.floor(Math.random() * maxX)) + 'px';
+      noBtn.style.top = Math.max(16, Math.floor(Math.random() * maxY)) + 'px';
+
+      send({ type: 'dodge', count: dodgeCount });
+    }
+
+    noBtn.addEventListener('mouseover', moveNoButton);
+    noBtn.addEventListener('touchstart', function (e) { e.preventDefault(); moveNoButton(); }, { passive: false });
+    noBtn.addEventListener('click', function (e) { e.preventDefault(); moveNoButton(); });
+
+    yesBtn.addEventListener('click', function () {
+      send({ type: 'yes' });
+      show('result');
+    });
+  </script>
+</body>
+</html>

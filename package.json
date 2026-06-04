@@ -1,0 +1,16 @@
+{
+  "name": "willyou",
+  "version": "2.0.0",
+  "description": "Real-time will-you-go-on-a-date app for Marylyne, with a live dashboard for David",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}
