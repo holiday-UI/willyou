@@ -13,6 +13,9 @@ const DAVID_CODE = process.env.DAVID_CODE || 'david2026';
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check — also the target of the keep-alive pings.
+app.get('/healthz', (req, res) => res.send('ok'));
+
 // It's one couple, so a single in-memory session is all we need.
 function freshState() {
   return {
@@ -114,3 +117,13 @@ wss.on('connection', (ws) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log('willyou server listening on ' + PORT));
+
+// Keep the free Render instance awake: ping our own public URL every 14 min so
+// it never hits the 15-min idle timeout. Render injects RENDER_EXTERNAL_URL.
+const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+if (SELF_URL) {
+  setInterval(() => {
+    fetch(SELF_URL + '/healthz').catch(() => {});
+  }, 14 * 60 * 1000);
+  console.log('self-ping keep-alive enabled for ' + SELF_URL);
+}
