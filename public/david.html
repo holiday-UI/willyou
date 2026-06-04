@@ -162,6 +162,10 @@
           <div class="label">💌 Answer</div>
           <div class="value pending" id="answer">Waiting…</div>
         </div>
+        <div class="card" style="grid-column: 1 / -1;">
+          <div class="label">💝 Date she chose</div>
+          <div class="value pending" id="datechoice">Not yet</div>
+        </div>
       </div>
 
       <div class="log">
@@ -263,6 +267,15 @@
         answer.textContent = 'Waiting…';
         answer.className = 'value pending';
         document.getElementById('yesBanner').classList.remove('show');
+      }
+
+      const dc = document.getElementById('datechoice');
+      if (s.dateChoice) {
+        dc.className = 'value done';
+        dc.innerHTML = '💝 ' + s.dateChoice + ' <small>' + fmtTime(s.dateChoiceAt) + '</small>';
+      } else {
+        dc.className = 'value pending';
+        dc.textContent = 'Not yet';
       }
 
       const list = document.getElementById('logList');

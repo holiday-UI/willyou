@@ -26,6 +26,8 @@ function freshState() {
     dodgeCount: 0,
     answered: null,
     answeredAt: null,
+    dateChoice: null,
+    dateChoiceAt: null,
     log: []
   };
 }
@@ -105,6 +107,11 @@ wss.on('connection', (ws) => {
           state.answeredAt = Date.now();
           addLog('🎉 SHE SAID YES! 💕');
         }
+        break;
+      case 'datechoice':
+        state.dateChoice = (typeof msg.choice === 'string' ? msg.choice : '').slice(0, 40);
+        state.dateChoiceAt = Date.now();
+        addLog('💝 She wants a ' + state.dateChoice + '!');
         break;
       default:
         return;
